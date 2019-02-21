@@ -2,6 +2,7 @@
 
 export()
 export(buildCellTypeIndex)
+export(hackCellTypeIndex)
 export(cellTypeMarkers)
 export(cellTypeNames)
 export(evaluateMarkers)

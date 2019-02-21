@@ -754,6 +754,87 @@ setMethod("findSimilarGenes",
                     gene.list = "character"), 
           similar.genes)
 
+#' Builds an \code{SCFind} object from a \code{SingleCellExperiment} object
+#'
+#' This function will index a \code{SingleCellExperiment} as an SCFind index.
+#'
+#' @param sce object of SingleCellExperiment class
+#' @param dataset.name name of the dataset that will be prepended in each cell_type
+#' @param assay.name name of the SingleCellExperiment assay that will be considered for the generation of the index
+#' @param cell.type.label the cell.type metadata of the colData SingleCellExperiment that will be used for the index
+#' 
+#' @name hackCellTypeIndex
+#'
+#' @return an SCFind object
+#'
+#' @importFrom SingleCellExperiment SingleCellExperiment
+#' @importFrom SummarizedExperiment rowData rowData<- colData colData<- assayNames assays
+#' @importFrom hash hash
+#' @importFrom methods new
+#' 
+#' @importFrom Rcpp cpp_object_initializer
+#' @useDynLib scfind 
+#' 
+hackCellTypeIndex.SCESet <- function(matrix, annotation, dataset.name)
+{
+    
+    if (grepl(dataset.name,'.'))
+    {
+        stop("The dataset name should not contain any dots")
+    }
+    
+    
+    cell.types.all <- as.factor(annotation$cell_type1)
+    cell.types <- levels(cell.types.all)
+    new.cell.types <- hash(keys = cell.types, values = paste0(dataset.name, '.', cell.types))
+    genenames <- unique(rownames(matrix))
+    
+    if (length(cell.types) > 0)
+    {
+        non.zero.cell.types <- c()
+        index <- hash()
+        ## print(paste("Found", length(cell.types), "clusters on", ncol(sce), "cells"))
+        # if( ! assay.name %in% assayNames(sce))
+        # {
+        #     stop(paste('Assay name', assay.name, 'not found in the SingleCellExperiment'))
+        # }
+        # else
+        # {
+        #     message(paste("Generating index for", dataset.name, "from '", assay.name, "' assay"))
+        # }
+        exprs <- matrix
+        
+        ef <- new(EliasFanoDB)
+        for (cell.type in cell.types) {
+            inds.cell <- which(cell.type == cell.types.all)
+            if(length(inds.cell) < 2)
+            {
+                ## print(paste('Skipping', cell.type))
+                next
+            }
+            non.zero.cell.types <- c(non.zero.cell.types, cell.type)
+            message(paste("\tIndexing", cell.type, "as", new.cell.types[[cell.type]], " with ", length(inds.cell), " cells."))
+            cell.type.exp <- exprs[,inds.cell]
+            if(is.matrix(exprs))
+            {
+                ef$indexMatrix(new.cell.types[[cell.type]], cell.type.exp)
+            }
+            else
+            {
+                ef$indexMatrix(new.cell.types[[cell.type]], as.matrix(cell.type.exp))
+            }
+        }
+    }
+    
+    index <- new("SCFind", index = ef, datasets = dataset.name, metadata = list())
+    return(index)
+}
+
+#' @rdname hackCellTypeIndex
+#' @aliases hackCellTypeIndex hackIndex
+setMethod("hackCellTypeIndex",
+          signature(dataset.name="character"),
+          hackCellTypeIndex.SCESet)
 
 
 

@@ -22,6 +22,16 @@ setGeneric(name = "buildCellTypeIndex",
            })
 
 
+#' 
+#' @export
+setGeneric(name = "hackCellTypeIndex",
+           def = function(matrix, annotation, dataset.name)
+           {
+               standardGeneric("hackCellTypeIndex")
+           })
+
+
+
 #' @export 
 setGeneric(name = "mergeDataset", def = function(object, new.object) {
     standardGeneric("mergeDataset")
