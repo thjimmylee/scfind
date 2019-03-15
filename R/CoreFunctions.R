@@ -58,6 +58,7 @@ caseCorrect <- function(object, gene.list)
 phyper.test <- function(object, result, datasets)
 {
     df <- query.result.as.dataframe(result)
+    if(nrow(df) == 0) return(data.frame(cell_type = c() , cell_id = c()))
     datasets <- select.datasets(object, datasets)
     
     cell.types.df <- aggregate(cell_id ~ cell_type, df, FUN = length)
