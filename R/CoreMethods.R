@@ -262,6 +262,10 @@ cell.type.marker <- function(object, cell.types, background.cell.types, top.k, s
 
         background.cell.types <- cellTypeNames(object)
     }
+    else
+    {
+        background.cell.types <- unique(c(cell.types, background.cell.types))
+    }
     all.cell.types <- object@index$cellTypeMarkers(cell.types, background.cell.types)
     if (!(sort.field %in% colnames(all.cell.types)))
     {
@@ -326,6 +330,10 @@ evaluate.cell.type.markers <- function(object, gene.list, cell.types, background
     {
         message("Considering the whole DB..")
         background.cell.types <- cellTypeNames(object)
+    }
+    else
+    {
+        background.cell.types <- unique(c(cell.types, background.cell.types))
     }
     all.cell.types <- object@index$evaluateCellTypeMarkers(cell.types, caseCorrect(object, gene.list), background.cell.types)
 
