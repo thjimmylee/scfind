@@ -22,6 +22,13 @@ setGeneric(name = "buildCellTypeIndex",
                standardGeneric("buildCellTypeIndex")
            })
 
+#' 
+#' @export
+setGeneric(name = "importSCEMetadata",
+           def = function(sce, object, metadata = c("colData", "reducedDims"), used.cell.type.label = "cell_type1", dataset.name, index.name)
+           {
+               standardGeneric("importSCEMetadata")
+           })
 
 #' @export 
 setGeneric(name = "mergeDataset", def = function(object, new.object) {
@@ -164,6 +171,23 @@ setGeneric(name = "findSimilarGenes", function(object, gene.list, datasets, top.
     standardGeneric("findSimilarGenes")
 })
 
+#'  Calculate the density of cells expressing the gene list over a period of pseudotime
+#' 
+#' @export
+setGeneric(name = "evaluatePseudotimeDensity", function(object,
+                                                        gene.list,
+                                                        dataset, 
+                                                        specific.period = c(0, 1), 
+                                                        coldata.slot = "pseudotime"){
+    standardGeneric("evaluatePseudotimeDensity")
+})
+
+#'  Calculate the continuous density of cells expressing the gene list over a period of pseudotime
+#' 
+#' @export
+setGeneric(name = "evaluatePseudotimeContinuousDensity", function(object, gene.list, dataset, bw = 0.1, coldata.slot = "pseudotime"){
+    standardGeneric("evaluatePseudotimeContinuousDensity")
+})
 
 
 

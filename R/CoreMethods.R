@@ -86,6 +86,94 @@ setMethod("buildCellTypeIndex",
           signature(sce = "SingleCellExperiment"),
           buildCellTypeIndex.SCESet)
 
+#' This function imports metadata from SingleCellExperiment class
+#'
+#' This function can be used to enable the user include metadata in SCfind object
+#'
+#' After serializing and saving it clears the redundant bytestream from memory
+#' because the memory is already loaded in memory
+#' @param sce object of SingleCellExperiment class
+#' @param object an SCFind object
+#' @param metadata attributes of the SingleCellExperiment class that will be imported
+#' @param used.cell.type.label the cell.type metadata of the colData SingleCellExperiment that is used for the index
+#' @param dataset.name name of the dataset that the metadata is imported from the SingleCellExperiment class
+#' @param index.name name of the index
+#'
+#' @return the \code{SCFind} object
+#' @name importSCEMetadata
+sce.metadata.to.scfind.index <- function(sce, object, metadata = c("colData", "reducedDims"), used.cell.type.label = "cell_type1", dataset.name, index.name)
+{
+    metadata <- unique(metadata)
+    if(missing(dataset.name)) stop ("Missing dataset.name!")
+    if(missing(index.name)) stop ("Missing index.name!")
+    if(identical(dataset.name, index.name)) stop ("Index name is identical to dataset name!")
+    
+    
+    if(!is.empty.list(object@metadata))
+    {
+        # Ask if still want to proceed if metadata is not empty
+    }
+    
+    
+    # screen through metadata and give warning if that slot is empty
+    
+    if( any(metadata %in% c("assays", "rowRanges")))
+    {
+        warning( paste0("Ignored: ", toString(metadata[metadata %in% c("assays", "rowRanges")]) ))
+        metadata <- metadata[! metadata %in% c("assays", "rowRanges")]
+    }
+    else
+    {
+        if( any(!metadata %in% names(attributes(sce))) )
+        {
+            warning( paste0("Ignored: ", toString(metadata[!metadata %in% names(attributes(sce))]), ". Metadata not found!" ))
+            metadata <- metadata[metadata %in% names(attributes(sce))]
+        }
+        else
+        {
+            metadata <- metadata
+        }
+    }
+    
+    if(length(metadata) != 0)
+    {
+        # do something here
+        
+        # Always input an index 
+        object@metadata[[index.name]] <- if(is.null(object@metadata[[index.name]])) list() else object@metadata[[index.name]]
+        
+        # structure: scfind@metadata$`index.name`$`metadata`
+        object@metadata[[dataset.name]] <- if(is.null(object@metadata[[dataset.name]])) list() else object@metadata[[dataset.name]]
+        
+        for(meta.name in metadata)
+        {
+            object@metadata[[dataset.name]][[meta.name]] <- as.list(attributes(sce)[[meta.name]])
+        }
+        
+        # renew index
+        object@metadata[[index.name]] <- list(dataset = names(object@metadata[-1]), metadata = metadata, cell.type.label = used.cell.type.label)
+        
+        if(any(!names(object@metadata)[-1] %in% object@datasets)) warning (paste(toString(object@metadata[[1]][['dataset']][!names(object@metadata)[-1] %in% object@datasets]), "not match object datasets!"))
+        
+        return(object)
+    }
+    else
+    {
+        return(object)
+    }
+}
+
+
+#' @rdname importSCEMetadata
+#' @aliases importSCEMetadata
+setMethod("importSCEMetadata",
+          signature(sce = "SingleCellExperiment",
+                    object = "SCFind",
+                    used.cell.type.label = "character", 
+                    dataset.name = "character", 
+                    index.name = "character"),
+          sce.metadata.to.scfind.index)
+
 #' This function serializes the DB and save the object as an rds file
 #'
 #' This function can be used to enable the user save the loaded file in a database
@@ -790,6 +878,89 @@ setMethod("findSimilarGenes",
           similar.genes)
 
 
+#'  Calculate the density of cells expressing the gene list over a period of pseudotime
+#' 
+#' @param object the \code{SCFind} object
+#' @param gene.list genes to be searched in the gene.index
+#' @param datasets the datasets that will be considered
+#' @param specific.period set window of pseudotime considered
+#' @param coldata.slot name of the pseudotime slot in colData of the metadata
+#'
+#' @name evaluatePseudotimeDensity
+#' @return the density of cells over a period of pseudotime
+#' 
+pseudotime.density <- function(object, gene.list, dataset, specific.period = c(0, 1), coldata.slot = "pseudotime")
+{
+    if(!any(object@metadata[[1]][['dataset']] %in% dataset)) stop("Dataset not exist!")
+    if(!coldata.slot %in% names(object@metadata[[dataset]][['colData']])) stop("Pseudotime slot not exist in colData. Please select the correct slot using `coldata.slot`")
+    if(length(specific.period) != 2 || min(specific.period) < 0 || max(specific.period) > 1) stop("Period out of bound. Please input range between 0 and 1.")
+    
+    cell.list <- data.frame(stack(findCellTypes(object = object, gene.list = gene.list, dataset = dataset)), pseudotime = NA)
+    
+    meta.data <- data.frame(cell_type1 = object@metadata[[dataset]][['colData']][object@metadata[[1]][['cell.type.label']]][[1]], 
+                            object@metadata[[dataset]][['colData']][coldata.slot])
+    
+    # Check if pseudotime within range
+    meta.data$pseudotime <- if(min(meta.data$pseudotime) < 0 || max(meta.data$pseudotime) > 1) rescale.pseudotime(meta.data$pseudotime) else meta.data$pseudotime
+    
+    for( i in 1: nrow(cell.list) )
+    {
+        cell.list$pseudotime[i] <- subset(meta.data, cell_type1 == sub(".*\\.", "", cell.list$ind[i]))$pseudotime[cell.list$values[i]]
+    }
+    
+    cell.list <- subset(cell.list, pseudotime <= max(specific.period) & pseudotime >= min(specific.period))
+    if(nrow(cell.list) == 0)
+    {
+        return(0)
+    }
+    else
+    {
+        # no.of.cell <- sum(meta.data$pseudotime > min(cell.list$pseudotime) & meta.data$pseudotime < max(cell.list$pseudotime))
+        no.of.cell <- sum(meta.data$pseudotime > min(specific.period) & meta.data$pseudotime < max(specific.period))
+        
+        return(nrow(cell.list)/no.of.cell)
+    }
+} 
 
 
+#' @rdname evaluatePseudotimeDensity
+#' @aliases evaluatePseudotimeDensity
+setMethod("evaluatePseudotimeDensity", 
+          signature(object = "SCFind",
+                    gene.list = "character",
+                    dataset = "character"), 
+          pseudotime.density)
 
+#'  Calculate the continuous density of cells expressing the gene list over a period of pseudotime
+#' 
+#' @param object the \code{SCFind} object
+#' @param gene.list genes to be searched in the gene.index
+#' @param datasets the datasets that will be considered
+#' @param bw the bandwidth to be used
+#' @param coldata.slot name of the pseudotime slot in colData of the metadata
+#'
+#' @name evaluatePseudotimeContinuousDensity
+#' @return the continous density of cells over a period of pseudotime
+#' 
+pseudotime.continuous.density <- function(object, gene.list, dataset, bw = 0.1, coldata.slot = "pseudotime")
+{
+    df <- data.frame()
+    time <- 0
+    
+    while(time < 1-bw)
+    {
+        df <- rbind(df, data.frame(pseudotime = time, cell.density = evaluatePseudotimeDensity(object = object, gene.list = gene.list, dataset = dataset, specific.period=c(time, time+bw), coldata.slot = coldata.slot)))
+        time <- time + bw
+    }
+    
+    return(data.frame(df))
+}
+
+
+#' @rdname evaluatePseudotimeContinuousDensity
+#' @aliases evaluatePseudotimeContinuousDensity
+setMethod("evaluatePseudotimeContinuousDensity", 
+          signature(object = "SCFind",
+                    gene.list = "character",
+                    dataset = "character"), 
+          pseudotime.continuous.density)

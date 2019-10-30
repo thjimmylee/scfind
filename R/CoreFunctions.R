@@ -173,3 +173,9 @@ find.signature <- function(object, cell.type, max.genes=1000, min.cells=10, max.
     }
     return( genes.list )
 }
+
+rescale.pseudotime <- function(x)
+{
+    (x-min(x))/(max(x)-min(x))
+}
+
