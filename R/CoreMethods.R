@@ -897,8 +897,7 @@ pseudotime.density <- function(object, gene.list, dataset, specific.period = c(0
     
     cell.list <- data.frame(stack(findCellTypes(object = object, gene.list = gene.list, dataset = dataset)), pseudotime = NA)
     
-    meta.data <- data.frame(cell_type1 = object@metadata[[dataset]][['colData']][object@metadata[[1]][['cell.type.label']]][[1]], 
-                            object@metadata[[dataset]][['colData']][coldata.slot])
+    meta.data <- setNames(data.frame(object@metadata[[dataset]][['colData']][object@metadata[[1]][['cell.type.label']]][[1]], object@metadata[[dataset]][['colData']][coldata.slot]), c("cell_type1", "pseudotime"))
     
     # Check if pseudotime within range
     meta.data$pseudotime <- if(min(meta.data$pseudotime) < 0 || max(meta.data$pseudotime) > 1) rescale.pseudotime(meta.data$pseudotime) else meta.data$pseudotime
