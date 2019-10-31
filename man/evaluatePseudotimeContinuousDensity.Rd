@@ -7,9 +7,11 @@
 \alias{evaluatePseudotimeContinuousDensity,SCFind,character-method}
 \title{Calculate the density of cells expressing the gene list over a period of pseudotime}
 \usage{
-pseudotime.continuous.density(object, gene.list, dataset, bw = 0.1, coldata.slot = "pseudotime")
+pseudotime.continuous.density(object, gene.list, dataset, step.size = 0.1, coldata.slot = "pseudotime")
 
-\S4method{evaluatePseudotimeContinuousDensity}{SCFind,character}(object, gene.list, dataset, bw = 0.1, coldata.slot = "pseudotime")
+evaluatePseudotimeContinuousDensity(object, gene.list, dataset, step.size = 0.1, coldata.slot = "pseudotime")
+
+\S4method{evaluatePseudotimeContinuousDensity}{SCFind,character}(object, gene.list, dataset, step.size = 0.1, coldata.slot = "pseudotime")
 }
 \arguments{
 \item{object}{the \code{SCFind} object}
@@ -18,7 +20,7 @@ pseudotime.continuous.density(object, gene.list, dataset, bw = 0.1, coldata.slot
 
 \item{datasets}{the datasets that will be considered}
 
-\item{bw}{the bandwidth to be used}
+\item{step.size}{the steps of period size to be used}
 
 \item{coldata.slot}{name of the pseudotime slot in colData of the metadata}
 }

@@ -893,21 +893,21 @@ pseudotime.density <- function(object, gene.list, dataset, specific.period = c(0
 {
     if(!any(object@metadata[[1]][['dataset']] %in% dataset)) stop("Dataset not exist!")
     if(!coldata.slot %in% names(object@metadata[[dataset]][['colData']])) stop("Pseudotime slot not exist in colData. Please select the correct slot using `coldata.slot`")
-    if(length(specific.period) != 2 || min(specific.period) < 0 || max(specific.period) > 1) stop("Period out of bound. Please input range between 0 and 1.")
+    if(length(specific.period) != 2 || signif(min(specific.period), 3) < 0 || signif(max(specific.period), 3) > 1) stop("Period out of bound. Please input range between 0 and 1.")
     
     cell.list <- data.frame(stack(findCellTypes(object = object, gene.list = gene.list, dataset = dataset)), pseudotime = NA)
     
     meta.data <- setNames(data.frame(object@metadata[[dataset]][['colData']][object@metadata[[1]][['cell.type.label']]][[1]], object@metadata[[dataset]][['colData']][coldata.slot]), c("cell_type1", "pseudotime"))
     
     # Check if pseudotime within range
-    meta.data$pseudotime <- if(min(meta.data$pseudotime) < 0 || max(meta.data$pseudotime) > 1) rescale.pseudotime(meta.data$pseudotime) else meta.data$pseudotime
+    meta.data$pseudotime <- if(signif(min(meta.data$pseudotime), 3) < 0 || signif(max(meta.data$pseudotime), 3) > 1) rescale.pseudotime(meta.data$pseudotime) else meta.data$pseudotime
     
     for( i in 1: nrow(cell.list) )
     {
         cell.list$pseudotime[i] <- subset(meta.data, cell_type1 == sub(".*\\.", "", cell.list$ind[i]))$pseudotime[cell.list$values[i]]
     }
     
-    cell.list <- subset(cell.list, pseudotime <= max(specific.period) & pseudotime >= min(specific.period))
+    cell.list <- subset(cell.list, pseudotime <= signif(max(specific.period), 3) & pseudotime >= signif(min(specific.period), 3))
     if(nrow(cell.list) == 0)
     {
         return(0)
@@ -915,7 +915,7 @@ pseudotime.density <- function(object, gene.list, dataset, specific.period = c(0
     else
     {
         # no.of.cell <- sum(meta.data$pseudotime > min(cell.list$pseudotime) & meta.data$pseudotime < max(cell.list$pseudotime))
-        no.of.cell <- sum(meta.data$pseudotime > min(specific.period) & meta.data$pseudotime < max(specific.period))
+        no.of.cell <- sum(meta.data$pseudotime > signif(min(specific.period), 3) & meta.data$pseudotime < signif(max(specific.period), 3))
         
         return(nrow(cell.list)/no.of.cell)
     }
@@ -935,21 +935,21 @@ setMethod("evaluatePseudotimeDensity",
 #' @param object the \code{SCFind} object
 #' @param gene.list genes to be searched in the gene.index
 #' @param datasets the datasets that will be considered
-#' @param bw the bandwidth to be used
+#' @param step.size the steps of period size to be used
 #' @param coldata.slot name of the pseudotime slot in colData of the metadata
 #'
 #' @name evaluatePseudotimeContinuousDensity
 #' @return the continous density of cells over a period of pseudotime
 #' 
-pseudotime.continuous.density <- function(object, gene.list, dataset, bw = 0.1, coldata.slot = "pseudotime")
+pseudotime.continuous.density <- function(object, gene.list, dataset, step.size = 0.1, coldata.slot = "pseudotime")
 {
     df <- data.frame()
     time <- 0
-    
-    while(time < 1-bw)
+
+    while(time < 1)
     {
-        df <- rbind(df, data.frame(pseudotime = time, cell.density = evaluatePseudotimeDensity(object = object, gene.list = gene.list, dataset = dataset, specific.period=c(time, time+bw), coldata.slot = coldata.slot)))
-        time <- time + bw
+        time <- time + step.size
+        df <- rbind(df, data.frame(pseudotime = time, cell.density = evaluatePseudotimeDensity(object = object, gene.list = gene.list, dataset = dataset, specific.period=c(time - step.size, time), coldata.slot = coldata.slot)))
     }
     
     return(data.frame(df))

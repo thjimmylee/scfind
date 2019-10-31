@@ -9,6 +9,8 @@
 \usage{
 pseudotime.density(object, gene.list, dataset, specific.period = c(0, 1), coldata.slot = "pseudotime")
 
+evaluatePseudotimeDensity(object, gene.list, dataset, specific.period = c(0, 1), coldata.slot = "pseudotime")
+
 \S4method{evaluatePseudotimeDensity}{SCFind,character}(object, gene.list, dataset, specific.period = c(0, 1), coldata.slot = "pseudotime")
 }
 \arguments{

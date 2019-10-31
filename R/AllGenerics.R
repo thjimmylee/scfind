@@ -185,7 +185,7 @@ setGeneric(name = "evaluatePseudotimeDensity", function(object,
 #'  Calculate the continuous density of cells expressing the gene list over a period of pseudotime
 #' 
 #' @export
-setGeneric(name = "evaluatePseudotimeContinuousDensity", function(object, gene.list, dataset, bw = 0.1, coldata.slot = "pseudotime"){
+setGeneric(name = "evaluatePseudotimeContinuousDensity", function(object, gene.list, dataset, step.size = 0.1, coldata.slot = "pseudotime"){
     standardGeneric("evaluatePseudotimeContinuousDensity")
 })
 

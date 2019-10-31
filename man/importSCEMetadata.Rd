@@ -4,10 +4,11 @@
 \name{importSCEMetadata}
 \alias{importSCEMetadata}
 \alias{sce.metadata.to.scfind.index}
-\alias{metadata,SCFind,character-method}
 \title{Import metadata to \code{SCFind} object from a \code{SingleCellExperiment} object}
 \usage{
 sce.metadata.to.scfind.index(sce, object, metadata , used.cell.type.label, dataset.name, index.name)
+
+importSCEMetadata(sce, object, metadata , used.cell.type.label, dataset.name, index.name)
 
 \S4method{importSCEMetadata}{SingleCellExperiment}(sce, object, metadata = c("colData", "reducedDims"), used.cell.type.label = "cell_type1", dataset.name, index.name)
 }
