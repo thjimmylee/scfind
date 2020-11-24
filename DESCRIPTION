@@ -4,16 +4,16 @@ Title: A search tool for single cell RNA-seq data by gene lists
 Version: 3.7.0
 Author: Jimmy Lee, Nikolaos Patikas
 Maintainer: Jimmy Lee <thjimmylee@gmail.com>, Nikolaos Patikas <nik.patik@gmail.com>
-Authors@R: c(person("Vladimir", "Kiselev",
-             email = "vladimir.yu.kiselev@gmail.com",
-             role=c("aut")),
-             person("Martin", "Hemberg",
-             role=c("aut")),
+Authors@R: c(person("Jimmy Tsz Hang","Lee",
+             email = "thjimmylee@gmail.com",
+             role=c("cre", "aut")),
              person("Nikolaos","Patikas",
              email = "nik.patik@gmail.com",
+             role=c("cre", "aut")),             
+             person("Martin", "Hemberg",
              role=c("aut")),
-             person("Jimmy Tsz Hang","Lee",
-             email = "thjimmylee@gmail.com",
+             person("Vladimir", "Kiselev",
+             email = "vladimir.yu.kiselev@gmail.com",
              role=c("aut")))
 Description: Recently a very large collection of single-cell RNA-seq (scRNA-seq) datasets 
              has been generated and publicly released. For the collection to be 
